@@ -1,0 +1,46 @@
+---
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: '{{ hostname }}'
+  become: yes
+  when: hostname != ''
+
+- name: Set timezone
+  community.general.timezone:
+    name: '{{ timezone }}'
+  become: yes
+  when: timezone != ''
+
+- name: Update system
+  ansible.builtin.apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Install unattended-upgrades, apt-listchanges and ufw
+  ansible.builtin.apt:
+    name: [ 'unattended-upgrades', 'apt-listchanges', 'ufw' ]
+    state: present
+  become: yes
+
+- name: Upload unattended-upgrades config
+  ansible.builtin.copy:
+    src: ./files/20auto-upgrades
+    dest: /etc/apt/apt.conf.d/.
+  become: yes
+
+- name: Upload sshd config
+  ansible.builtin.copy:
+    src: ./files/sshd_config
+    dest: /etc/ssh/.
+  notify: Reload sshd service
+  become: yes
+
+- name: Deny everything except ssh and enable ufw
+  community.general.ufw:
+    name: ssh
+    rule: allow
+    default: deny
+    state: enabled
+  become: yes
