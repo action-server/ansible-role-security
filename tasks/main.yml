@@ -22,6 +22,8 @@
   ansible.builtin.apt:
     name: [ 'unattended-upgrades', 'apt-listchanges', 'ufw' ]
     state: present
+    update_cache: yes
+    cache_valid_time: 3600
   become: yes
 
 - name: Upload unattended-upgrades config
@@ -37,7 +39,7 @@
   notify: Reload sshd service
   become: yes
 
-- name: Deny everything except ssh and enable ufw
+- name: Deny everything except ssh and enable firewall
   community.general.ufw:
     name: ssh
     rule: allow
